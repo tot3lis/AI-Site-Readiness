@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Site Readiness Scorecard - {{site}}</title>
+  <style>
+    /* The audit script renders this as fully local static HTML with embedded CSS. */
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p>AI Site Readiness Scorecard</p>
+      <h1>{{site}}</h1>
+      <p>{{score}} / 100 - {{readiness_level}}</p>
+      <h2>{{main_issue}}</h2>
+      <p>{{business_impact}}</p>
+    </header>
+    <section>{{score_breakdown}}</section>
+    <section>{{top_fixes}}</section>
+    <section>{{audit_coverage}}</section>
+    <section>{{audit_matrix}}</section>
+    <section>{{technical_appendix}}</section>
+  </main>
+</body>
+</html>

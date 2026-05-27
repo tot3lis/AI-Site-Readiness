@@ -1,0 +1,38 @@
+# AI Site Readiness Scorecard
+
+## Snapshot
+
+| Field | Value |
+| --- | --- |
+| Site | {{site}} |
+| Audit date | {{audit_date}} |
+| Overall score | {{score}} / 100 |
+| Readiness level | {{readiness_level}} |
+| Main issue | {{main_issue}} |
+| Business impact | {{business_impact}} |
+
+## Score Breakdown
+
+{{score_breakdown}}
+
+{{score_explanation}}
+
+## {{top_fix_heading}}
+
+| Priority | Fix | Why it matters |
+|---:|---|---|
+{{top_fix_rows}}
+
+## Audit Coverage
+
+{{audit_coverage}}
+
+## Audit Matrix
+
+| Area | Signal | Result | Impact | Evidence | Priority |
+| --- | --- | --- | --- | --- | --- |
+{{audit_matrix}}
+
+## Technical Appendix
+
+{{technical_appendix}}

@@ -1,0 +1,29 @@
+# AI Site Readiness Evidence Log
+
+## Requests
+
+{{requests}}
+
+## Files Checked
+
+{{files_checked}}
+
+## Sampled Pages
+
+{{sampled_pages}}
+
+## Headers Used
+
+{{headers_used}}
+
+## JSON-LD Types Detected
+
+{{jsonld_types}}
+
+## Robots.txt AI Bot Findings
+
+{{robots_findings}}
+
+## Unknown / Error Notes
+
+{{unknown_notes}}
