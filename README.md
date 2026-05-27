@@ -80,3 +80,9 @@ The skill lives at:
 - Python 3
 - Standard-library-only for the core audit
 - No API keys required
+
+## Acknowledgements
+
+This project was inspired in part by Context CLI, an open-source MIT-licensed project for auditing URL readiness for LLMs and AI agents.
+
+AI Site Readiness Audit is an independent Codex Skill and is not affiliated with or endorsed by Context CLI.
