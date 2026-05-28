@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Site Readiness Audit - Example Reports</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #687483;
+      --line: #dce2e8;
+      --accent: #2457d6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0;
+    }
+    header,
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.15;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+    p {
+      margin-top: 0;
+    }
+    .muted {
+      color: var(--muted);
+    }
+    .report-list {
+      display: grid;
+      gap: 12px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .report-list a {
+      display: block;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      text-decoration: none;
+    }
+    .report-list a:hover {
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>AI Site Readiness Audit - Example Reports</h1>
+      <p>These reports were generated from publicly available website pages to demonstrate the AI Site Readiness Audit skill.</p>
+    </header>
+
+    <section>
+      <h2>Reports</h2>
+      <ul class="report-list">
+        <li><a href="ripndip-scorecard.html">RIPNDIP example report</a></li>
+        <li><a href="drinklmnt-scorecard.html">LMNT example report</a></li>
+        <li><a href="acquisition-scorecard.html">Acquisition.com example report</a></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Disclaimer</h2>
+      <p class="muted">These reports are not affiliated with, endorsed by, or sponsored by the audited companies. All trademarks belong to their respective owners.</p>
+      <p><a href="../README.md">Back to the GitHub repo README</a></p>
+    </section>
+  </main>
+</body>
+</html>

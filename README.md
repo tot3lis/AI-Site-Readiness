@@ -2,6 +2,18 @@
 
 A Codex Skill that audits a website for AI-readiness and generates a business-facing scorecard showing whether AI systems can crawl, understand, extract, cite, and interact with the site.
 
+## Example Reports
+
+View full example HTML reports generated from publicly available website pages:
+
+- [RIPNDIP](examples/ripndip-scorecard.html)
+- [LMNT](examples/drinklmnt-scorecard.html)
+- [Acquisition.com](examples/acquisition-scorecard.html)
+
+These examples are for testing and demonstration only. This project is not affiliated with, endorsed by, or sponsored by these companies. All trademarks belong to their respective owners.
+
+To publish the example reports as normal web pages, enable GitHub Pages for this repo from Settings -> Pages and publish from the `main` branch using the repository root or `/docs` if the repo is later reorganized.
+
 ## What It Does
 
 - Checks whether AI crawlers appear able to access the site.
