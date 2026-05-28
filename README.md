@@ -6,13 +6,14 @@ A Codex Skill that audits a website for AI-readiness and generates a business-fa
 
 View full example HTML reports generated from publicly available website pages:
 
+- [Example reports landing page](https://tot3lis.github.io/AI-Site-Readiness/)
 - [RIPNDIP](https://tot3lis.github.io/AI-Site-Readiness/examples/ripndip-scorecard.html)
 - [LMNT](https://tot3lis.github.io/AI-Site-Readiness/examples/drinklmnt-scorecard.html)
 - [Acquisition.com](https://tot3lis.github.io/AI-Site-Readiness/examples/acquisition-scorecard.html)
 
 These examples are for testing and demonstration only. This project is not affiliated with, endorsed by, or sponsored by these companies. All trademarks belong to their respective owners.
 
-To publish the example reports as normal web pages, enable GitHub Pages for this repo from Settings -> Pages and publish from the `main` branch using the repository root or `/docs` if the repo is later reorganized.
+To view the example reports as rendered webpages, GitHub Pages must be enabled from Settings -> Pages with source `main` and folder `/docs`.
 
 If the links show source code, GitHub Pages may not be enabled yet. Enable Pages from Settings -> Pages and publish from the `main` branch.
 
