@@ -95,6 +95,17 @@ MCP_PATHS = [
     "/api/mcp",
 ]
 
+SIGNAL_CONTENT = "Readable content available for AI extraction"
+SIGNAL_ROBOTS = "AI crawler access rules in robots.txt"
+SIGNAL_SCHEMA = "Structured data describing the site, organization, pages, or offers"
+SIGNAL_LLMS = "LLM site guide available at /llms.txt"
+SIGNAL_AGENTS = "Agent instruction file available at /AGENTS.md"
+SIGNAL_LLMS_FULL = "Full LLM-readable site file available at /llms-full.txt"
+SIGNAL_MARKDOWN_ACCEPT = "Markdown response support through Accept header"
+SIGNAL_MCP = "Discoverable agent tool or MCP endpoint"
+SIGNAL_SEMANTIC = "Semantic page structure for AI parsing"
+SIGNAL_MARKDOWN_SAMPLE = "Clean markdown can be extracted from sampled pages"
+
 
 @dataclass
 class FetchResult:
@@ -542,7 +553,7 @@ def evaluate_schema(pages: list[PageInfo], is_ecommerce: bool) -> tuple[str, int
         return "UNKNOWN", 0, ["No pages could be fetched for JSON-LD analysis"], "Could not verify structured data from the static sample.", "Re-run when sampled pages are accessible."
     types = sorted({t for page in pages for t in page.jsonld_types})
     if not types:
-        return "MISSING", 0, ["No JSON-LD schema types detected in sampled pages"], "AI systems have less structured context for extraction and citation.", "Add JSON-LD for organization, pages, and key entities."
+        return "MISSING", 0, ["No JSON-LD schema types detected in sampled pages"], "AI systems have less structured context for understanding the business, page purpose, and citeable entities.", "Add JSON-LD for organization, pages, and key entities."
     score = 8
     if "Organization" in types or "LocalBusiness" in types:
         score += 4
@@ -565,7 +576,7 @@ def evaluate_schema(pages: list[PageInfo], is_ecommerce: bool) -> tuple[str, int
         status = "PASS" if score >= 15 else "PARTIAL"
     score = min(20, score)
     evidence = [f"Detected JSON-LD types: {', '.join(types)}"]
-    return status, score, evidence, "Structured data helps AI systems identify entities, offers, and citeable page meaning.", "Improve JSON-LD coverage on important sampled page types."
+    return status, score, evidence, "AI systems have less structured context for understanding the business, page purpose, and citeable entities.", "Improve JSON-LD coverage on important sampled page types."
 
 
 def evaluate_semantic_html(pages: list[PageInfo]) -> tuple[str, float, list[str]]:
@@ -763,30 +774,56 @@ def get_finding(findings: list[dict[str, Any]], signal: str) -> dict[str, Any] |
     return next((item for item in findings if item["signal"] == signal), None)
 
 
-def business_impact_for(findings: list[dict[str, Any]], count_map: dict[str, int]) -> str:
+def missing_finding(findings: list[dict[str, Any]], signal: str) -> bool:
+    item = get_finding(findings, signal)
+    return bool(item and item["status"] == "MISSING")
+
+
+def partial_finding(findings: list[dict[str, Any]], signal: str) -> bool:
+    item = get_finding(findings, signal)
+    return bool(item and item["status"] == "PARTIAL")
+
+
+def high_missing_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [item for item in findings if item["status"] == "MISSING" and item["priority"] == "HIGH"]
+
+
+def guidance_missing_count(findings: list[dict[str, Any]]) -> int:
+    return sum(
+        1 for signal in [SIGNAL_LLMS, SIGNAL_AGENTS, SIGNAL_LLMS_FULL]
+        if missing_finding(findings, signal)
+    )
+
+
+def business_impact_for(findings: list[dict[str, Any]], count_map: dict[str, int], score: int) -> str:
     if count_map["UNKNOWN"] >= 4:
         return "The audit could not verify enough signals to make a confident business call. Static requests may have failed, been blocked, or returned inconclusive responses."
-    content = get_finding(findings, "Readable content available for AI extraction")
+    high_missing = high_missing_findings(findings)
+    schema_missing = missing_finding(findings, SIGNAL_SCHEMA)
+    guidance_count = guidance_missing_count(findings)
+    if schema_missing and guidance_count >= 2:
+        return "AI systems can extract some readable content, but missing schema, llms.txt, AGENTS.md, and llms-full.txt make the site harder for AI tools to understand, cite, and navigate confidently."
+    if high_missing:
+        missing_labels = ", ".join(item["signal"] for item in high_missing[:3])
+        if score < 70:
+            return f"AI systems may find some page content, but missing high-priority signals ({missing_labels}) limit reliable understanding, citation, and agent use."
+        return f"The site has useful AI-readiness signals, but missing high-priority items ({missing_labels}) create avoidable gaps for AI tools."
+    if score >= 85:
+        return "AI systems have strong crawl, content, schema, and agent-readiness signals; remaining fixes are mostly clarity or coverage improvements."
+    if score >= 70 and partial_finding(findings, SIGNAL_ROBOTS):
+        return "AI systems have strong content, schema, and agent-readiness signals, but clearer robots.txt guidance would reduce uncertainty around AI crawler access."
+    if 50 <= score <= 69:
+        return "AI systems can extract some readable content, but several AI-readiness signals are incomplete or unclear, which can reduce confidence in answers and citations."
+    content = get_finding(findings, SIGNAL_CONTENT)
     if content and content["status"] == "PARTIAL":
         return "AI systems can access and parse the site, but may not have enough useful page copy to answer questions, cite pages, or recommend products confidently."
     if content and content["status"] == "MISSING":
         return "AI systems may reach the site but find little usable body content to extract, quote, or turn into answers."
-    robots = get_finding(findings, "AI crawler access rules in robots.txt")
-    if robots and robots["status"] in {"MISSING", "PARTIAL"}:
-        return "Important AI crawlers may be prevented from seeing useful pages, which can reduce visibility in AI answers and citations."
-    missing_agent_files = [
-        item for item in findings
-        if item["signal"] in {
-            "LLM site guide available at /llms.txt",
-            "Agent instruction file available at /AGENTS.md",
-            "Full LLM-readable site file available at /llms-full.txt",
-        } and item["status"] == "MISSING"
-    ]
-    if missing_agent_files:
-        return "AI systems can still crawl ordinary pages, but they do not have concise guidance files that explain what the site contains and how agents should use it."
-    schema = get_finding(findings, "Structured data describing products, offers, and site entities")
+    schema = get_finding(findings, SIGNAL_SCHEMA)
     if schema and schema["status"] in {"MISSING", "PARTIAL"}:
-        return "AI systems can read the pages, but may miss important entities, offers, breadcrumbs, or page meaning because structured data is incomplete."
+        return "AI systems can read the pages, but may miss important entities, page purpose, or business context because structured data is incomplete."
+    if partial_finding(findings, SIGNAL_ROBOTS):
+        return "AI crawler access is not fully documented, which can leave uncertainty about whether common AI bots should crawl useful pages."
     high = [f for f in findings if f["priority"] == "HIGH" and f["status"] != "PASS"]
     if high:
         return high[0]["impact"]
@@ -796,10 +833,27 @@ def business_impact_for(findings: list[dict[str, Any]], count_map: dict[str, int
     return "AI-facing discovery and extraction signals are mostly present in the static sample."
 
 
-def choose_main_issue(findings: list[dict[str, Any]], count_map: dict[str, int]) -> str:
+def choose_main_issue(findings: list[dict[str, Any]], count_map: dict[str, int], score: int) -> str:
     if count_map["UNKNOWN"] >= 4:
         return "The audit could not verify several signals because static requests failed or were blocked."
-    content = get_finding(findings, "Readable content available for AI extraction")
+    schema_missing = missing_finding(findings, SIGNAL_SCHEMA)
+    guidance_count = guidance_missing_count(findings)
+    high_missing = high_missing_findings(findings)
+    if schema_missing and guidance_count >= 2:
+        return "The site is missing key AI-facing guidance and structured data signals."
+    if high_missing:
+        if score < 50:
+            return "AI systems may struggle to reliably understand, cite, or interact with the site."
+        if score < 70:
+            return "The site has some readable content but is missing several important AI-readiness signals."
+        return "The site has strong AI-readiness signals, but a high-priority guidance gap remains."
+    if score >= 85:
+        if partial_finding(findings, SIGNAL_ROBOTS):
+            return "The site is AI-ready, with minor crawler-access clarification remaining."
+        return "The site is AI-ready, with only minor improvements remaining."
+    if score >= 70 and partial_finding(findings, SIGNAL_ROBOTS):
+        return "The site is mostly AI-ready, but crawler access is not clearly documented for common AI bots."
+    content = get_finding(findings, SIGNAL_CONTENT)
     strong_technical = sum(
         1 for item in findings
         if item["area"] in {"Agent Readiness", "AI Bot Access", "Schema / Structured Data", "Technical Hygiene"} and item["status"] == "PASS"
@@ -810,21 +864,18 @@ def choose_main_issue(findings: list[dict[str, Any]], count_map: dict[str, int])
         return "The sampled pages have readable content, but it is thin or under-structured for confident AI answers."
     if content and content["status"] == "MISSING":
         return "The sampled pages expose almost no extractable body content."
-    robots = get_finding(findings, "AI crawler access rules in robots.txt")
+    robots = get_finding(findings, SIGNAL_ROBOTS)
     if robots and robots["status"] == "MISSING":
         return "Some AI crawlers may be blocked from accessing the site."
     if robots and robots["status"] == "PARTIAL":
         return "AI crawler access is present, but not clearly documented for common AI bots."
     missing_agent_files = [
         item for item in findings
-        if item["signal"] in {
-            "LLM site guide available at /llms.txt",
-            "Agent instruction file available at /AGENTS.md",
-        } and item["status"] == "MISSING"
+        if item["signal"] in {SIGNAL_LLMS, SIGNAL_AGENTS} and item["status"] == "MISSING"
     ]
     if missing_agent_files:
         return "The site is crawlable, but missing AI-facing guidance files."
-    schema = get_finding(findings, "Structured data describing products, offers, and site entities")
+    schema = get_finding(findings, SIGNAL_SCHEMA)
     if schema and schema["status"] in {"MISSING", "PARTIAL"}:
         return "AI systems can read the pages, but structured data is incomplete."
     candidates = [f for f in sorted(findings, key=priority_sort) if f["status"] in {"MISSING", "PARTIAL", "UNKNOWN"} and f["priority"] != "NONE"]
@@ -1369,18 +1420,27 @@ def audit(raw_url: str, out: str | None = None) -> Path:
     agents_score = status_points(agents_status, 5, 2)
     llms_full_score = status_points(llms_full_status, 3, 1)
     agent_readiness_score = llms_score + agents_score + llms_full_score + accept_score + mcp_score + semantic_agent_score
+    content_impact = "Sampled pages contain readable text, but some pages are thin, which may limit how confidently AI systems can answer questions or cite the site."
+    accept_impact = "AI clients can request a cleaner markdown-like response instead of parsing only normal HTML." if accept_status == "PASS" else "AI clients cannot request a markdown version directly, so they must parse normal HTML instead."
+    if mcp_status == "PASS":
+        mcp_impact = "The site exposes a discoverable machine-usable endpoint or reference that agents can use beyond static page reading."
+    elif mcp_status == "PARTIAL":
+        mcp_impact = "The site has some agent-tooling signal, but may not expose a clearly usable endpoint for AI agents."
+    else:
+        mcp_impact = "AI agents do not see a clear machine-usable tool path, so they are limited to reading static pages."
+    llms_full_priority = "HIGH" if llms_full_status != "PASS" and (is_ecommerce or len(sitemap_urls) >= 50 or content_score >= 26) else "MEDIUM" if llms_full_status != "PASS" else "NONE"
 
     findings = [
-        finding("Content & Extraction Quality", "Readable content available for AI extraction", content_status, content_score, 35, content_impact, content_evidence[:3], "HIGH" if content_status in {"MISSING", "UNKNOWN"} else "MEDIUM" if content_status == "PARTIAL" else "NONE", content_action),
-        finding("AI Bot Access", "AI crawler access rules in robots.txt", robots_status, ai_bot_score, 20, robots_impact, robots_evidence, "HIGH" if robots_status == "MISSING" else "MEDIUM" if robots_status in {"PARTIAL", "UNKNOWN"} else "NONE", "Clarify AI crawler access in robots.txt without assuming missing directives are good or bad."),
-        finding("Schema / Structured Data", "Structured data describing products, offers, and site entities", schema_status, schema_score, 20, schema_impact, schema_evidence, "HIGH" if schema_status == "MISSING" else "MEDIUM" if schema_status == "PARTIAL" else "NONE", schema_action),
-        finding("Agent Readiness", "LLM site guide available at /llms.txt", llms_status, llms_score, 5, "LLMs do not have a clean site guide." if llms_status != "PASS" else "A clean LLM site guide is available.", llms_evidence, "HIGH" if llms_status != "PASS" else "NONE", "Add /llms.txt."),
-        finding("Agent Readiness", "Agent instruction file available at /AGENTS.md", agents_status, agents_score, 5, "Future agents lack explicit operating guidance." if agents_status != "PASS" else "Agent guidance is discoverable.", agents_evidence, "HIGH" if agents_status != "PASS" else "NONE", "Add /AGENTS.md or a common discoverable variant."),
-        finding("Agent Readiness", "Full LLM-readable site file available at /llms-full.txt", llms_full_status, llms_full_score, 3, "Deep extraction may lack a complete markdown knowledge source." if llms_full_status != "PASS" else "A fuller LLM-readable source is available.", llms_full_evidence, "HIGH" if llms_full_status != "PASS" and is_ecommerce else "MEDIUM" if llms_full_status != "PASS" else "NONE", "Add /llms-full.txt when the site has substantial product, policy, documentation, or service content."),
-        finding("Agent Readiness", "Markdown response support through Accept header", accept_status, accept_score, 3, "Markdown negotiation can make extraction cleaner for AI clients." if accept_status != "PASS" else "Markdown content negotiation is available.", accept_evidence, "MEDIUM" if accept_status == "UNKNOWN" else "LOW" if accept_status != "PASS" else "NONE", "Consider serving markdown-like responses when clients request Accept: text/markdown."),
-        finding("Agent Readiness", "Discoverable MCP or agent-tooling reference", mcp_status, mcp_score, 2, "Agents may not discover machine-usable tools or endpoints from static signals." if mcp_status != "PASS" else "MCP discovery signal is present.", mcp_evidence, "LOW" if mcp_status != "PASS" else "NONE", "Add a discoverable MCP reference if the site exposes agent tools."),
+        finding("Content & Extraction Quality", SIGNAL_CONTENT, content_status, content_score, 35, content_impact, content_evidence[:3], "HIGH" if content_status in {"MISSING", "UNKNOWN"} else "MEDIUM" if content_status == "PARTIAL" else "NONE", content_action),
+        finding("AI Bot Access", SIGNAL_ROBOTS, robots_status, ai_bot_score, 20, robots_impact, robots_evidence, "HIGH" if robots_status == "MISSING" else "MEDIUM" if robots_status in {"PARTIAL", "UNKNOWN"} else "NONE", "Clarify AI crawler access in robots.txt without assuming missing directives are good or bad."),
+        finding("Schema / Structured Data", SIGNAL_SCHEMA, schema_status, schema_score, 20, schema_impact, schema_evidence, "HIGH" if schema_status == "MISSING" else "MEDIUM" if schema_status == "PARTIAL" else "NONE", schema_action),
+        finding("Agent Readiness", SIGNAL_LLMS, llms_status, llms_score, 5, "LLMs do not have a clean site guide." if llms_status != "PASS" else "A clean LLM site guide is available.", llms_evidence, "HIGH" if llms_status != "PASS" else "NONE", "Add /llms.txt."),
+        finding("Agent Readiness", SIGNAL_AGENTS, agents_status, agents_score, 5, "Future agents lack explicit operating guidance." if agents_status != "PASS" else "Agent guidance is discoverable.", agents_evidence, "HIGH" if agents_status != "PASS" else "NONE", "Add /AGENTS.md or a common discoverable variant."),
+        finding("Agent Readiness", SIGNAL_LLMS_FULL, llms_full_status, llms_full_score, 3, "Deep extraction may lack a complete markdown knowledge source." if llms_full_status != "PASS" else "A fuller LLM-readable source is available.", llms_full_evidence, llms_full_priority, "Add /llms-full.txt when the site has substantial product, policy, documentation, or service content."),
+        finding("Agent Readiness", SIGNAL_MARKDOWN_ACCEPT, accept_status, accept_score, 3, accept_impact, accept_evidence, "LOW" if accept_status != "PASS" else "NONE", "Consider serving markdown-like responses when clients request Accept: text/markdown."),
+        finding("Agent Readiness", SIGNAL_MCP, mcp_status, mcp_score, 2, mcp_impact, mcp_evidence, "LOW" if mcp_status != "PASS" else "NONE", "Add a discoverable MCP reference if the site exposes agent tools."),
         finding("Agent Readiness", "Semantic page structure for AI parsing", semantic_status, semantic_agent_score, 2, "Semantic landmarks help agents segment page content and actions.", semantic_evidence[:3], "MEDIUM" if semantic_status == "MISSING" else "LOW" if semantic_status == "PARTIAL" else "NONE", "Improve landmarks, heading hierarchy, aria labels, and role usage where appropriate."),
-        finding("Content & Extraction Quality", "Markdown extraction sample", markdown_status, markdown_score, 3, "A clean markdown extraction sample shows whether useful page text can be lifted from static HTML.", ["Markdown sample was generated from the best available sampled page"] if markdown_status == "PASS" else ["No markdown sample could be generated"], "NONE" if markdown_status == "PASS" else "LOW", "Improve static text availability so a markdown sample can be extracted."),
+        finding("Content & Extraction Quality", SIGNAL_MARKDOWN_SAMPLE, markdown_status, markdown_score, 3, "AI systems can consume the sampled page content in a cleaner, simpler format than raw HTML.", ["Markdown sample was generated from the best available sampled page"] if markdown_status == "PASS" else ["No markdown sample could be generated"], "NONE" if markdown_status == "PASS" else "LOW", "Improve static text availability so a markdown sample can be extracted."),
         finding("Technical Hygiene", "Basic metadata and accessibility", hygiene_status, hygiene_score, 5, hygiene_impact, hygiene_evidence, "MEDIUM" if hygiene_status == "MISSING" else "LOW" if hygiene_status == "PARTIAL" else "NONE", "Fix missing sitemap, canonical, title, meta description, or HTTP accessibility issues."),
     ]
 
@@ -1406,8 +1466,8 @@ def audit(raw_url: str, out: str | None = None) -> Path:
             "partial": count_map["PARTIAL"],
             "missing": count_map["MISSING"],
             "unknown": count_map["UNKNOWN"],
-            "mainIssue": choose_main_issue(findings, count_map),
-            "businessImpact": business_impact_for(findings, count_map),
+            "mainIssue": choose_main_issue(findings, count_map, total),
+            "businessImpact": business_impact_for(findings, count_map, total),
             "topFixes": fixes[:8],
         },
         "coverage": {

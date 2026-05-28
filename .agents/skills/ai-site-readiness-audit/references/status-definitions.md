@@ -13,7 +13,7 @@ For content extraction, classify thin readable pages as `PARTIAL`, not `MISSING`
 
 - `HIGH`: Likely to affect AI crawlability, extraction, citation, or agent readiness in a meaningful way.
 - `MEDIUM`: Worth fixing after high-priority gaps, or important for specific site types.
-- `LOW`: Useful improvement, low V0 urgency, or emerging convention.
+- `LOW`: Useful improvement, low urgency, or emerging convention.
 - `NONE`: No fix required.
 
 Use only these labels in the scorecard matrix and JSON.

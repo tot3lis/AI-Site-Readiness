@@ -38,8 +38,8 @@ The audit uses a 100-point score.
 - Missing `llms.txt`: `HIGH`.
 - Missing `AGENTS.md`: `HIGH`.
 - Missing `llms-full.txt`: `MEDIUM` for most sites and `HIGH` when the site has substantial documentation, product, catalog, or policy content.
-- Missing MCP discoverability: usually `LOW` for V0.
-- Missing `Accept: text/markdown`: usually `LOW` or `MEDIUM`.
+- Missing MCP discoverability: usually `LOW`.
+- Missing `Accept: text/markdown`: usually `LOW` unless there is a strong reason to raise it.
 - `UNKNOWN` earns no points and must not overclaim failure.
 
 ## Content Classification

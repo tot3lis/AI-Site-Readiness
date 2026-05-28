@@ -45,5 +45,5 @@ Load these only when needed:
 
 - `references/scoring-rubric.md` for scoring and readiness bands.
 - `references/status-definitions.md` for status and priority labels.
-- `references/technical-checks.md` for the V0 checks and hard limits.
+- `references/technical-checks.md` for the checks and hard limits.
 - `references/report-format.md` for the scorecard packet shape.

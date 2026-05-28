@@ -61,10 +61,11 @@ Signal labels should explain what is being checked. Prefer labels such as:
 - `Agent instruction file available at /AGENTS.md`
 - `Full LLM-readable site file available at /llms-full.txt`
 - `Markdown response support through Accept header`
-- `Discoverable MCP or agent-tooling reference`
+- `Discoverable agent tool or MCP endpoint`
 - `AI crawler access rules in robots.txt`
-- `Structured data describing products, offers, and site entities`
+- `Structured data describing the site, organization, pages, or offers`
 - `Semantic page structure for AI parsing`
+- `Clean markdown can be extracted from sampled pages`
 
 ## HTML Scorecard
 
